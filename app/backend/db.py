@@ -107,6 +107,11 @@ class Database:
                 CREATE INDEX IF NOT EXISTS tags_name_trgm_idx
                 ON tags USING GIN (name gin_trgm_ops)
             """)
+            # Composite index to speed up category-filtered queries ordered by published_date
+            await conn.execute("""
+                CREATE INDEX IF NOT EXISTS articles_category_published_idx
+                ON articles (category_id, published_date DESC)
+            """)
     
     # Author operations
     async def create_author(self, name: str, bio: Optional[str] = None) -> int:

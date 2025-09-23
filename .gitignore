@@ -117,6 +117,7 @@ ipython_config.py
 .pdm-python
 .pdm-build/
 
+app/frontend/node_modules
 # pixi
 #   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
 #pixi.lock
@@ -167,6 +168,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

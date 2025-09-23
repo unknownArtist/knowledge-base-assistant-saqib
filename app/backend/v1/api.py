@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.backend.v1.endpoints import article
+from app.backend.v1.endpoints import article, category
 from app.backend.db import db
 from data.seed_data import seed
 
@@ -40,3 +40,4 @@ def main():
     return {"message": "API is getting ready..."}
 
 app.include_router(article.router)
+app.include_router(category.router)

@@ -177,9 +177,3 @@ CREATE TABLE IF NOT EXISTS article_tags (
   SELECT id, name FROM authors WHERE name ILIKE '%ali%' ORDER BY name LIMIT 10;
   ```
   Uses `authors_name_trgm_idx`.
-
-### Notes
-
-- All indexes are created idempotently in `app/backend/db.py` during `init_tables()`.
-- Consider unique constraints on `categories.name`, `tags.name`, and `authors.name` when moving to production to prevent duplicates at the data layer (the seeders currently de-duplicate in code).
-

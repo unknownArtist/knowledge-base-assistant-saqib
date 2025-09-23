@@ -40,3 +40,9 @@ class AskRequest(BaseModel):
 class AskResponse(BaseModel):
     answer: str
     context_used: List[ArticleResponse]
+
+
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+    

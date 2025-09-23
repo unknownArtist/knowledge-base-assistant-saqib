@@ -37,7 +37,9 @@ This will:
 ### Start the fronend
 
 ```bash
-# Navigate to project directory, then to frontend directory, now run this command 
+# Navigate to project directory, then to frontend directory, now run this command to install node modules 
+npm install  
+# Now run this command to run our frontend
 npm run dev
 # It will start frontend on a specific port e,g http://localhost:5173
 ```

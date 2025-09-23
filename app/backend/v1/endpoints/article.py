@@ -4,22 +4,11 @@ from pydantic import BaseModel
 from app.backend.db import db
 from app.backend.schemas.article import (
     ArticleBase, ArticleResponse, ArticleListResponse,
-    TagResponse
+    TagResponse, AskResponse, AskRequest
 )
 from app.backend.services.llm_service import llm_service
 
 router = APIRouter(tags=["Articles"], prefix="/api/v1")
-
-
-# Request/Response models for ask endpoint
-class AskRequest(BaseModel):
-    question: str
-    context_ids: List[int]
-
-
-class AskResponse(BaseModel):
-    answer: str
-    context_used: List[ArticleResponse]
 
 
 # Ask endpoint (LLM question answering)

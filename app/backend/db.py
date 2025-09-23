@@ -88,7 +88,6 @@ class Database:
             """)
 
             # Enable and create full-text search index for performance
-            # Note: For best performance at scale, consider using GIN indexes and materialized tsvectors.
             await conn.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
             await conn.execute("""
                 CREATE INDEX IF NOT EXISTS articles_fts_idx

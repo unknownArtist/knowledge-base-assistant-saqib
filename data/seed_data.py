@@ -76,41 +76,66 @@ async def seed() -> Dict[str, Any]:
     for name in ["Python", "FastAPI", "PostgreSQL", "Docker", "AsyncIO"]:
         tag_ids[name] = await ensure_tag(name)
 
-    def generate_content(min_words: int = 500, max_words: int = 2000) -> str:
-        tech_sentences = [
-            "Modern distributed systems prioritize observability, tracing, and structured logging to accelerate incident response and root cause analysis.",
-            "FastAPI leverages Python type hints to generate OpenAPI schemas and enables high-throughput IO using AsyncIO primitives like tasks and streams.",
-            "PostgreSQL offers powerful indexing strategies such as B-Tree, GIN, BRIN, and partial indexes to optimize diverse query workloads.",
-            "Container images built with multi-stage Dockerfiles reduce attack surface and improve deployment speed by keeping runtime layers minimal.",
-            "Careful schema design balances normalization for integrity with denormalization for read performance and analytics use cases.",
-            "Effective pagination avoids OFFSET for large tables, using keyset or cursor-based approaches to deliver consistent latency.",
-            "Asynchronous workers offload heavy tasks from request lifecycles, improving P99 latencies and overall system resilience.",
-            "Caching strategies must consider invalidation semantics, data freshness requirements, and failure modes to avoid serving stale content.",
-            "Background task orchestration benefits from idempotent handlers, deduplication, and exponential backoff for transient failures.",
-            "Automated CI pipelines enforce code quality gates, run tests in parallel, and push signed images to registries for traceable releases.",
-            "Security practices include secrets management, least-privilege access, SBOM generation, and regular image scanning for vulnerabilities.",
-            "Performance tuning starts with profiling and measuring real user metrics before selecting targeted optimizations.",
-            "Database migrations should be backward compatible, supporting rolling deployments without downtime via additive changes.",
-            "Feature flags enable trunk-based development, progressive delivery, and safe rollbacks by decoupling deploys from releases.",
-            "Correctly configured connection pooling protects the database under load while maximizing throughput and minimizing tail latency.",
-            "Full-text search with to_tsvector and to_tsquery supports flexible relevance ranking and linguistic normalization in PostgreSQL.",
-            "WebSockets and server-sent events allow low-latency updates for collaborative and real-time applications.",
-            "Robust error handling distinguishes between retryable and terminal failures to preserve system stability and user trust.",
-            "Structured configuration via environment variables and typed settings harmonizes local and production environments.",
-            "Comprehensive tests cover unit, integration, and contract layers to detect regressions and ensure API compatibility.",
+    def generate_content(category: str, title: str, min_words: int = 500, max_words: int = 2000) -> str:
+        common = [
+            "Performance tuning starts with profiling and realistic benchmarks before applying targeted optimizations.",
+            "Clear documentation and typed interfaces improve long-term maintainability and onboarding speed.",
+            "Automated CI pipelines enforce quality gates and produce reproducible artifacts for traceable releases.",
+            "Idempotent operations and robust retries are crucial for resilient distributed workflows.",
         ]
+
+        programming_bank = [
+            "FastAPI leverages Python type hints to auto-generate OpenAPI and deliver excellent DX.",
+            "AsyncIO enables high-throughput non-blocking IO using event loops, tasks, and coroutines.",
+            "Pydantic models centralize validation and serialization for clean API contracts.",
+            "Dependency Injection in FastAPI (Depends) promotes modular design and testability.",
+            "Cursor-based pagination avoids OFFSET scans and keeps response latency predictable.",
+            "WebSockets support real-time messaging with connection lifecycle management.",
+        ]
+
+        databases_bank = [
+            "PostgreSQL B-Tree, GIN, and BRIN indexes target different access patterns and data distributions.",
+            "Composite indexes like (category_id, published_date) accelerate sorted range scans.",
+            "Explain Analyze reveals join strategies, filter selectivity, and potential index usage.",
+            "Partial indexes reduce bloat by indexing only hot subsets of data.",
+            "To_tsvector and to_tsquery power relevance-ranked full-text search.",
+            "Proper connection pooling protects the database from overload under bursty traffic.",
+        ]
+
+        devops_bank = [
+            "Multi-stage Docker builds keep runtime images slim and secure.",
+            "Healthchecks and readiness probes enable zero-downtime rollouts.",
+            "SBOMs and image scanning help track and remediate vulnerabilities.",
+            "Secrets management and least-privilege access reduce blast radius.",
+            "Caching layers and build graph optimization speed up CI pipelines.",
+            "Observability (logs, metrics, traces) shortens MTTR for production incidents.",
+        ]
+
+        bank_map = {
+            "Programming": programming_bank,
+            "Databases": databases_bank,
+            "DevOps": devops_bank,
+        }
 
         target = random.randint(min_words, max_words)
         words: List[str] = []
+
+        # Intro paragraph tailored to title/category
+        intro = (
+            f"{title} — This article explores practical techniques in {category.lower()} "
+            f"with step-by-step guidance, trade-offs, and production-ready patterns."
+        )
+        words.extend(intro.split())
+
+        bank = bank_map.get(category, []) + common
         while len(words) < target:
-            sentence = random.choice(tech_sentences)
-            # Add minor variation
-            if random.random() < 0.2:
+            sentence = random.choice(bank)
+            if random.random() < 0.25:
                 sentence += " This pattern reduces operational toil and enhances maintainability."
-            if random.random() < 0.15:
-                sentence += " Benchmarks should reflect production-like traffic and data distributions."
+            if random.random() < 0.2:
+                sentence += " Code samples and benchmarks reflect realistic traffic and data distributions."
             words.extend(sentence.split())
-        # Trim to target boundary within a small tolerance
+
         return " ".join(words[:target])
 
     base_titles = [
@@ -155,9 +180,16 @@ async def seed() -> Dict[str, Any]:
             title = f"{title} #{i+1}"
         author = authors_cycle[i % len(authors_cycle)]
         category = categories_cycle[i % len(categories_cycle)]
-        # Pick 2-3 tags randomly
-        tags = random.sample(tags_pool, k=random.randint(2, 3))
-        content = generate_content(500, 2000)
+        # Pick tags relevant to category
+        if category == "Programming":
+            tag_options = ["Python", "FastAPI", "AsyncIO"]
+        elif category == "Databases":
+            tag_options = ["PostgreSQL", "Python"]
+        else:
+            tag_options = ["Docker", "Python"]
+        k = 2 if len(tag_options) == 2 else random.randint(2, 3)
+        tags = random.sample(tag_options, k=k)
+        content = generate_content(category, title, 500, 2000)
         source_articles.append({
             "title": title,
             "author": author,

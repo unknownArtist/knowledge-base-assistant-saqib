@@ -11,12 +11,12 @@ function Home() {
   const [loadingArticle, setLoadingArticle] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  // On typing the previous cards will disapper
+  // On typing the previous cards will disappear
   function handleSearchTyping() {
-  setSelectedArticle(null);
-  setShowChat(false);
-}
-  
+    setSelectedArticle(null);
+    setShowChat(false);
+  }
+
   function handleSelectArticle(id, item) {
     setLoadingArticle(true);
     setShowChat(false);
@@ -30,7 +30,7 @@ function Home() {
         author_name: item.author_name,
         published_date: item.published_date,
         category_name: item.category_name,
-       tags: item.tags ? item.tags.map((tag) => tag.name) : [],
+        tags: item.tags ? item.tags.map((tag) => tag.name) : [],
       });
       setLoadingArticle(false);
     }, 1000);
@@ -43,7 +43,6 @@ function Home() {
     >
       {/* Main wrapper */}
       <div className="min-h-screen flex flex-col items-center p-6">
-
         {/* Header */}
         <header className="flex flex-col items-center mt-10 mb-12">
           <img src={logo} alt="App Logo" className="w-32 h-32 mb-4" />
@@ -58,12 +57,17 @@ function Home() {
         {/* SearchBar centered */}
         <main className="w-full max-w-4xl flex flex-col items-center">
           <div className="w-full max-w-2xl">
-            <SearchBar onSelectArticle={handleSelectArticle} onTyping={handleSearchTyping} />
+            <SearchBar
+              onSelectArticle={handleSelectArticle}
+              onTyping={handleSearchTyping}
+            />
           </div>
 
-          {/* Loading */}
+          {/* Loading Spinner */}
           {loadingArticle && (
-            <div className="mt-4 text-gray-300">Loading article…</div>
+            <div className="flex justify-center items-center mt-6 h-40">
+              <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+            </div>
           )}
 
           {/* Show article card and chat */}

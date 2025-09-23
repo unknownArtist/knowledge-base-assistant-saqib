@@ -1,7 +1,18 @@
+import { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 
 export default function ArticleCard({ article, onAsk, onClose }) {
+  const [expanded, setExpanded] = useState(false);
+
   if (!article) return null;
+
+  const previewLimit = 200; // initial excerpt
+  const expandedLimit = 800; // limit when expanded
+
+  const shouldTruncate = article.content && article.content.length > previewLimit;
+  const displayedContent = expanded
+    ? article.content?.slice(0, expandedLimit)
+    : article.content?.slice(0, previewLimit);
 
   return (
     <div className="w-full max-w-2xl bg-[#343c51] rounded-2xl p-6 shadow-md mt-6 text-gray-300 relative">
@@ -19,21 +30,23 @@ export default function ArticleCard({ article, onAsk, onClose }) {
         {article.title}
       </h2>
 
-      {/* Content preview */}
+      {/* Content preview with inline See more */}
       <p className="text-gray-200 mt-4 whitespace-pre-line">
-        {article.content?.slice(0, 800)}
+        {displayedContent}
+        {shouldTruncate && !expanded && "... "}
+        {shouldTruncate && (
+          <button
+            onClick={() => setExpanded((prev) => !prev)}
+            className="text-white font-medium hover:underline ml-1"
+          >
+            {expanded ? "See less" : "See more"}
+          </button>
+        )}
       </p>
 
       {/* Meta info */}
       <div className="mt-6 text-sm text-gray-400 space-y-2">
         <div>Author: {article.author_name || "Unknown Author"}</div>
-        <div>
-          Published:{" "}
-          {article.published_date
-            ? new Date(article.published_date).toLocaleDateString()
-            : "Unknown Date"}
-        </div>
-        <div>Category: {article.category_name || "Uncategorized"}</div>
       </div>
 
       {/* Tags */}

@@ -29,3 +29,14 @@ class ArticleListResponse(BaseModel):
     total: int
     page: int
     limit: int
+
+
+# Request/Response models for ask endpoint
+class AskRequest(BaseModel):
+    question: str
+    context_ids: List[int]
+
+
+class AskResponse(BaseModel):
+    answer: str
+    context_used: List[ArticleResponse]

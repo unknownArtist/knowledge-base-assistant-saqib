@@ -34,9 +34,17 @@ This will:
 - Start PostgreSQL and the API service
 - Initialize tables and seed data automatically on API startup
 
+### Start the fronend
+
+```bash
+# Navigate to project directory, then to frontend directory, now run this command 
+npm run dev
+# It will start frontend on a specific port e,g http://localhost:5173
+```
 Services:
 - API: http://localhost:4000 (OpenAPI docs at `/docs`)
 - Adminer (DB UI): http://localhost:8081
+- Frontend: http://localhost:5173
 
 To stop and remove containers and volumes:
 
@@ -76,6 +84,7 @@ The app will connect, initialize tables, and seed data on startup.
 - Health/root: `GET /`
 - Search: `GET /api/v1/search?query=...&limit=5`
 - Ask (LLM): `POST /api/v1/ask` with JSON body containing `question` and `context_ids` (list of article IDs)
+- Categories: `GET /api/v1/categories` To fetch all categories
 
 ## Database schema and indexing
 

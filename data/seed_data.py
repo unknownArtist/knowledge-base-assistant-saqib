@@ -1,4 +1,5 @@
 import asyncio
+import random
 from typing import List, Optional, Dict, Any
 
 from app.backend.db import db
@@ -75,114 +76,95 @@ async def seed() -> Dict[str, Any]:
     for name in ["Python", "FastAPI", "PostgreSQL", "Docker", "AsyncIO"]:
         tag_ids[name] = await ensure_tag(name)
 
-    # Articles (embedded list to avoid import issues when run as module)
-    source_articles = [
-        {
-            "title": "Full stack development",
-            "author": "Saqib",
-            "category": "Programming",
-            "content": (
-                "Full stack development combines front-end and back-end expertise to build complete "
-                "digital solutions. A full stack developer works with user interfaces, server logic, "
-                "and databases, ensuring seamless interaction between all layers. Mastery of frameworks, "
-                "APIs, and cloud platforms allows them to deliver scalable, responsive applications."
-            ),
-            "tags": ["Python", "FastAPI", "Docker"],
-        },
-        {
-            "title": "Mastering PostgreSQL indexing",
-            "author": "Bob Smith",
-            "category": "Databases",
-            "content": (
-                "PostgreSQL indexing strategies like B-Tree, GIN, and BRIN can drastically improve "
-                "query performance. Learn when to create composite indexes, use partial indexes, and "
-                "apply full-text search with GIN to optimize reads without over-indexing."
-            ),
-            "tags": ["PostgreSQL"],
-        },
-        {
-            "title": "Building fast APIs with FastAPI and AsyncIO",
-            "author": "Alice Johnson",
-            "category": "Programming",
-            "content": (
-                "FastAPI leverages Python type hints and AsyncIO to deliver high-performance web services. "
-                "Combine async database drivers, background tasks, and validation to build maintainable, "
-                "production-ready APIs with excellent developer experience."
-            ),
-            "tags": ["FastAPI", "AsyncIO", "Python"],
-        },
-        {
-            "title": "Dockerizing your Python app",
-            "author": "Saqib",
-            "category": "DevOps",
-            "content": (
-                "Containerizing Python applications with Docker ensures consistent environments across "
-                "development and production. Use multi-stage builds, slim base images, and proper caching "
-                "to keep images small and deployments fast."
-            ),
-            "tags": ["Docker", "Python"],
-        },
-        {
-            "title": "AsyncIO patterns for scalable services",
-            "author": "Alice Johnson",
-            "category": "Programming",
-            "content": (
-                "Understand event loops, tasks, and synchronization primitives to build scalable async "
-                "services. Learn when to apply gather vs. wait and how to avoid deadlocks."
-            ),
-            "tags": ["AsyncIO", "Python"],
-        },
-        {
-            "title": "Effective schema design in PostgreSQL",
-            "author": "Bob Smith",
-            "category": "Databases",
-            "content": (
-                "Normalize for integrity, denormalize for performance. Use constraints, enums, and views "
-                "to model complex domains cleanly without sacrificing query speed."
-            ),
-            "tags": ["PostgreSQL"],
-        },
-        {
-            "title": "Production-ready FastAPI configuration",
-            "author": "Saqib",
-            "category": "Programming",
-            "content": (
-                "Structure settings with pydantic, manage dependency injection, and configure logging "
-                "to ship robust, maintainable FastAPI applications."
-            ),
-            "tags": ["FastAPI", "Python"],
-        },
-        {
-            "title": "Optimizing Docker build caching",
-            "author": "Saqib",
-            "category": "DevOps",
-            "content": (
-                "Leverage multi-stage builds, order layers wisely, and pin dependencies to speed up "
-                "Docker builds and reduce image sizes."
-            ),
-            "tags": ["Docker"],
-        },
-        {
-            "title": "Connection pooling with async drivers",
-            "author": "Alice Johnson",
-            "category": "Programming",
-            "content": (
-                "Use async connection pools to improve throughput. Tune pool sizes and timeouts for "
-                "predictable latency under load."
-            ),
-            "tags": ["AsyncIO", "Python", "PostgreSQL"],
-        },
-        {
-            "title": "Query planning insights in PostgreSQL",
-            "author": "Bob Smith",
-            "category": "Databases",
-            "content": (
-                "Read EXPLAIN ANALYZE to understand sequential scans, index usage, and join strategies. "
-                "Adjust indexes and rewrite queries for better plans."
-            ),
-            "tags": ["PostgreSQL"],
-        },
+    def generate_content(min_words: int = 500, max_words: int = 2000) -> str:
+        tech_sentences = [
+            "Modern distributed systems prioritize observability, tracing, and structured logging to accelerate incident response and root cause analysis.",
+            "FastAPI leverages Python type hints to generate OpenAPI schemas and enables high-throughput IO using AsyncIO primitives like tasks and streams.",
+            "PostgreSQL offers powerful indexing strategies such as B-Tree, GIN, BRIN, and partial indexes to optimize diverse query workloads.",
+            "Container images built with multi-stage Dockerfiles reduce attack surface and improve deployment speed by keeping runtime layers minimal.",
+            "Careful schema design balances normalization for integrity with denormalization for read performance and analytics use cases.",
+            "Effective pagination avoids OFFSET for large tables, using keyset or cursor-based approaches to deliver consistent latency.",
+            "Asynchronous workers offload heavy tasks from request lifecycles, improving P99 latencies and overall system resilience.",
+            "Caching strategies must consider invalidation semantics, data freshness requirements, and failure modes to avoid serving stale content.",
+            "Background task orchestration benefits from idempotent handlers, deduplication, and exponential backoff for transient failures.",
+            "Automated CI pipelines enforce code quality gates, run tests in parallel, and push signed images to registries for traceable releases.",
+            "Security practices include secrets management, least-privilege access, SBOM generation, and regular image scanning for vulnerabilities.",
+            "Performance tuning starts with profiling and measuring real user metrics before selecting targeted optimizations.",
+            "Database migrations should be backward compatible, supporting rolling deployments without downtime via additive changes.",
+            "Feature flags enable trunk-based development, progressive delivery, and safe rollbacks by decoupling deploys from releases.",
+            "Correctly configured connection pooling protects the database under load while maximizing throughput and minimizing tail latency.",
+            "Full-text search with to_tsvector and to_tsquery supports flexible relevance ranking and linguistic normalization in PostgreSQL.",
+            "WebSockets and server-sent events allow low-latency updates for collaborative and real-time applications.",
+            "Robust error handling distinguishes between retryable and terminal failures to preserve system stability and user trust.",
+            "Structured configuration via environment variables and typed settings harmonizes local and production environments.",
+            "Comprehensive tests cover unit, integration, and contract layers to detect regressions and ensure API compatibility.",
+        ]
+
+        target = random.randint(min_words, max_words)
+        words: List[str] = []
+        while len(words) < target:
+            sentence = random.choice(tech_sentences)
+            # Add minor variation
+            if random.random() < 0.2:
+                sentence += " This pattern reduces operational toil and enhances maintainability."
+            if random.random() < 0.15:
+                sentence += " Benchmarks should reflect production-like traffic and data distributions."
+            words.extend(sentence.split())
+        # Trim to target boundary within a small tolerance
+        return " ".join(words[:target])
+
+    base_titles = [
+        "Designing resilient FastAPI microservices",
+        "PostgreSQL indexing deep dive",
+        "AsyncIO patterns for production",
+        "Observability for Python services",
+        "Scaling full-text search with PostgreSQL",
+        "Optimizing Docker images for CI",
+        "Connection pooling strategies",
+        "Reliable background processing",
+        "API versioning and compatibility",
+        "Secure configuration management",
+        "WebSockets at scale",
+        "Effective schema evolution",
+        "Testing strategies for async code",
+        "Cursor-based pagination techniques",
+        "Tuning query performance",
+        "Streaming large responses",
+        "Idempotent endpoint design",
+        "Monitoring query hotspots",
+        "Graceful shutdown patterns",
+        "Dependency injection best practices",
+        "Container security essentials",
+        "Partitioning strategies for time-series",
+        "JSONB patterns and GIN indexes",
+        "Task scheduling with AsyncIO",
+        "Operational dashboards that matter",
     ]
+
+    authors_cycle = ["Saqib", "Alice Johnson", "Bob Smith"]
+    categories_cycle = ["Programming", "Databases", "DevOps"]
+    tags_pool = ["Python", "FastAPI", "PostgreSQL", "Docker", "AsyncIO"]
+
+    # Create at least 20 articles; use up to len(base_titles)
+    num_articles = max(20, min(25, len(base_titles)))
+    source_articles: List[Dict[str, Any]] = []
+    for i in range(num_articles):
+        title = base_titles[i % len(base_titles)]
+        # Ensure uniqueness by appending an index for repeated titles
+        if base_titles.count(title) > 1 or i >= len(base_titles):
+            title = f"{title} #{i+1}"
+        author = authors_cycle[i % len(authors_cycle)]
+        category = categories_cycle[i % len(categories_cycle)]
+        # Pick 2-3 tags randomly
+        tags = random.sample(tags_pool, k=random.randint(2, 3))
+        content = generate_content(500, 2000)
+        source_articles.append({
+            "title": title,
+            "author": author,
+            "category": category,
+            "content": content,
+            "tags": tags,
+        })
 
     created_article_ids: List[int] = []
     for art in source_articles:

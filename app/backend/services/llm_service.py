@@ -7,6 +7,7 @@ from config.settings import settings
 
 
 class LLMService:
+    
     def __init__(self):
         self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.max_tokens = 4000  # Context window limit

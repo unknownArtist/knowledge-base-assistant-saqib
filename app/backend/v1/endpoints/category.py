@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.backend.schemas.article import CategoryResponse
+from app.backend.schemas import CategoryResponse
 from app.backend.db import db
 
 

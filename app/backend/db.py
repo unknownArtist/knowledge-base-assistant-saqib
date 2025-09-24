@@ -112,103 +112,7 @@ class Database:
                 ON articles (category_id, published_date DESC)
             """)
     
-    # Author operations
-    async def create_author(self, name: str, bio: Optional[str] = None) -> int:
-        """Create a new author"""
-        async with self.pool.acquire() as conn:
-            result = await conn.fetchval(
-                "INSERT INTO authors (name, bio) VALUES ($1, $2) RETURNING id",
-                name, bio
-            )
-            return result
     
-    async def get_author(self, author_id: int) -> Optional[Dict[str, Any]]:
-        """Get author by ID"""
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT id, name, bio FROM authors WHERE id = $1",
-                author_id
-            )
-            return dict(row) if row else None
-    
-    async def get_all_authors(self) -> List[Dict[str, Any]]:
-        """Get all authors"""
-        async with self.pool.acquire() as conn:
-            rows = await conn.fetch("SELECT id, name, bio FROM authors")
-            return [dict(row) for row in rows]
-    
-    # Category operations
-    async def create_category(self, name: str) -> int:
-        """Create a new category"""
-        async with self.pool.acquire() as conn:
-            result = await conn.fetchval(
-                "INSERT INTO categories (name) VALUES ($1) RETURNING id",
-                name
-            )
-            return result
-    
-    async def get_category(self, category_id: int) -> Optional[Dict[str, Any]]:
-        """Get category by ID"""
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT id, name FROM categories WHERE id = $1",
-                category_id
-            )
-            return dict(row) if row else None
-    
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
-        """Get all categories"""
-        async with self.pool.acquire() as conn:
-            rows = await conn.fetch("SELECT id, name FROM categories")
-            return [dict(row) for row in rows]
-    
-    # Tag operations
-    async def create_tag(self, name: str) -> int:
-        """Create a new tag"""
-        async with self.pool.acquire() as conn:
-            result = await conn.fetchval(
-                "INSERT INTO tags (name) VALUES ($1) RETURNING id",
-                name
-            )
-            return result
-    
-    async def get_tag(self, tag_id: int) -> Optional[Dict[str, Any]]:
-        """Get tag by ID"""
-        async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT id, name FROM tags WHERE id = $1",
-                tag_id
-            )
-            return dict(row) if row else None
-    
-    async def get_all_tags(self) -> List[Dict[str, Any]]:
-        """Get all tags"""
-        async with self.pool.acquire() as conn:
-            rows = await conn.fetch("SELECT id, name FROM tags")
-            return [dict(row) for row in rows]
-    
-    # Article operations
-    async def create_article(self, title: str, content: str, author_id: int, 
-                           category_id: int, tag_ids: List[int] = None) -> int:
-        """Create a new article"""
-        async with self.pool.acquire() as conn:
-            async with conn.transaction():
-                # Create article
-                article_id = await conn.fetchval(
-                    """INSERT INTO articles (title, content, author_id, category_id) 
-                       VALUES ($1, $2, $3, $4) RETURNING id""",
-                    title, content, author_id, category_id
-                )
-                
-                # Add tags if provided
-                if tag_ids:
-                    for tag_id in tag_ids:
-                        await conn.execute(
-                            "INSERT INTO article_tags (article_id, tag_id) VALUES ($1, $2)",
-                            article_id, tag_id
-                        )
-                
-                return article_id
     
     
     async def get_articles_by_ids(self, article_ids: List[int]) -> List[Dict[str, Any]]:
@@ -249,39 +153,6 @@ class Database:
             
             return result
     
-    
-    async def search_articles(self, query: str, limit: int = 10, offset: int = 0) -> List[Dict[str, Any]]:
-        """Search articles by title or content"""
-        async with self.pool.acquire() as conn:
-            articles = await conn.fetch("""
-                SELECT a.id, a.title, a.content, a.published_date,
-                       a.author_id, a.category_id,
-                       au.name as author_name, au.bio as author_bio,
-                       c.name as category_name
-                FROM articles a
-                LEFT JOIN authors au ON a.author_id = au.id
-                LEFT JOIN categories c ON a.category_id = c.id
-                WHERE a.title ILIKE $1 OR a.content ILIKE $1
-                ORDER BY a.published_date DESC
-                LIMIT $2 OFFSET $3
-            """, f"%{query}%", limit, offset)
-            
-            result = []
-            for article in articles:
-                article_dict = dict(article)
-                
-                # Get tags for each article
-                tags = await conn.fetch("""
-                    SELECT t.id, t.name
-                    FROM tags t
-                    JOIN article_tags at ON t.id = at.tag_id
-                    WHERE at.article_id = $1
-                """, article['id'])
-                
-                article_dict['tags'] = [dict(tag) for tag in tags]
-                result.append(article_dict)
-            
-            return result
     
     
     async def search_articles_fts(self, query: str, category: Optional[str] = None, limit: int = 5) -> List[Dict[str, Any]]:

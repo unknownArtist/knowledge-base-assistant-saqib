@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
 from pydantic import BaseModel
 from app.backend.db import db
-from app.backend.schemas.article import (
+from app.backend.schemas import (
     ArticleBase, ArticleResponse, ArticleListResponse,
     TagResponse, AskResponse, AskRequest
 )

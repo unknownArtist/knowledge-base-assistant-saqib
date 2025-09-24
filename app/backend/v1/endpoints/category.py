@@ -9,10 +9,6 @@ from app.backend.db import db
 router = APIRouter(tags=["Categories"], prefix="/api/v1")
 
 
-class CategoryResponse(BaseModel):
-    id: int
-    name: str
-
 
 @router.get("/categories", response_model=List[CategoryResponse])
 async def get_categories() -> List[CategoryResponse]:

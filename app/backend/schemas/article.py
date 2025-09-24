@@ -45,4 +45,3 @@ class AskResponse(BaseModel):
 class CategoryResponse(BaseModel):
     id: int
     name: str
-    

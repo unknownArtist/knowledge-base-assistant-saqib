@@ -1,5 +1,9 @@
 # knowledge-base-assistant-saqib
-
+## Demo video 
+This video was recorded at 90% completion, but it is enough to explain the functionality 
+```
+https://www.loom.com/share/73bf61d634474c7aa39c9a81369a0d65
+```
 ## Getting started
 
 ### Prerequisites

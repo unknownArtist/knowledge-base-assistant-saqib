@@ -94,6 +94,8 @@ class Database:
                 ON articles
                 USING GIN (to_tsvector('english', coalesce(title,'') || ' ' || coalesce(content,'')))
             """)
+            # Note: The composite full-text search index will be created dynamically in the search query
+            # since it requires JOINs that aren't available in CREATE INDEX context
             await conn.execute("""
                 CREATE INDEX IF NOT EXISTS authors_name_trgm_idx
                 ON authors USING GIN (name gin_trgm_ops)
@@ -141,6 +143,7 @@ class Database:
         
         async with self.pool.acquire() as conn:
             # Create placeholders for the IN clause
+        
             placeholders = ','.join([f'${i+1}' for i in range(len(article_ids))])
             
             articles = await conn.fetch(f"""
@@ -201,7 +204,7 @@ class Database:
                         au.name AS author_name,
                         au.bio AS author_bio,
                         c.name AS category_name,
-                        to_tsvector('english', coalesce(a.title,'') || ' ' || coalesce(a.content,'')) AS document,
+                        to_tsvector('english', coalesce(a.title,'') || ' ' || coalesce(a.content,'') || ' ' || coalesce(au.name,'') || ' ' || coalesce(c.name,'')) AS document,
                         to_tsquery('english', $1) AS q
                     FROM articles a
                     LEFT JOIN authors au ON a.author_id = au.id

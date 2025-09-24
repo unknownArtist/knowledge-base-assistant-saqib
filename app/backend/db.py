@@ -112,6 +112,25 @@ class Database:
                 ON articles (category_id, published_date DESC)
             """)
     
+    # Author operations
+    async def create_author(self, name: str, bio: Optional[str] = None) -> int:
+        """Create a new author"""
+        async with self.pool.acquire() as conn:
+            result = await conn.fetchval(
+                "INSERT INTO authors (name, bio) VALUES ($1, $2) RETURNING id",
+                name, bio
+            )
+            return result
+    
+    
+    async def get_all_categories(self) -> List[Dict[str, Any]]:
+        """Get all categories"""
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch("SELECT id, name FROM categories")
+            return [dict(row) for row in rows]
+    
+    
+
     
     
     

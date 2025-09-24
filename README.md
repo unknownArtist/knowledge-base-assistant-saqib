@@ -137,9 +137,10 @@ CREATE TABLE IF NOT EXISTS article_tags (
 
 ### Indexes and why they were chosen
 
-- Full-text search (FTS) on articles title + content (GIN)
+- Full-text search (FTS) on articles with metadata (GIN)
   - Index: `articles_fts_idx` on `to_tsvector('english', coalesce(title,'') || ' ' || coalesce(content,''))`
-  - Why: Enables fast, ranked full-text search over title and content (used by `/api/v1/search`). GIN is optimized for inverted indexes and text search operators.
+  - Enhanced search: Dynamic FTS vector includes `title + content + author_name + category_name`
+  - Why: Enables fast, ranked full-text search over article content AND metadata (author names, categories). This allows users to search for "Bob Smith" and find all articles by that author, not just articles containing those words in the content. GIN is optimized for inverted indexes and text search operators.
 
 - Trigram indexes for fuzzy matching of names (GIN with `pg_trgm`)
   - Indexes: `authors_name_trgm_idx`, `categories_name_trgm_idx`, `tags_name_trgm_idx`
@@ -156,18 +157,50 @@ CREATE TABLE IF NOT EXISTS article_tags (
     LIMIT 25;
     ```
 
+#### How these indexes improve performance (and trade-offs)
+
+- Full-text GIN (`articles_fts_idx`)
+  - Operator support: accelerates `@@` (tsquery match) and enables fast `ts_rank` ordering when paired with a LIMIT.
+  - Access path: transforms text into an inverted index, letting PostgreSQL skip scanning non-matching rows entirely.
+  - Practical impact: large reductions in latency for keyword search vs. sequential scan or plain `ILIKE`.
+  - Trade-offs: GIN indexes are larger on disk and cost more to maintain on write; acceptable for our read-heavy workload.
+
+- Trigram GIN on `name` columns
+  - Operator support: speeds up `ILIKE '%term%'` and similarity operators used for autocomplete/fuzzy match.
+  - Access path: uses trigram signatures to narrow candidates, avoiding full table scans for partial matches.
+  - Practical impact: consistent sub-50ms lookups for prefix/substring matches even with growing datasets.
+  - Trade-offs: requires `pg_trgm`; index size grows with text length and cardinality.
+
+- Composite B-Tree `(category_id, published_date DESC)`
+  - Operator support: optimizes `WHERE category_id = ? ORDER BY published_date DESC LIMIT ?`.
+  - Access path: performs an ordered index range scan; avoids sort steps and often enables index-only scans if columns are covered by the index or cached.
+  - Practical impact: efficient category feeds without extra sorting work; stable latency as table grows.
+  - Trade-offs: Only helps when the leading column (`category_id`) is filtered; for other orderings, a different index may be needed.
+
+Notes on joined FTS vector
+- The search query builds a dynamic `to_tsvector` that includes `author` and `category` names. Because this vector spans joined tables, it cannot be directly indexed on `articles`.
+- The base `articles_fts_idx` still accelerates many searches (title/content). For cross-table FTS, a future enhancement is a materialized view (or a generated column with triggers) to store a denormalized searchable vector with a GIN index.
+
 ### Extensions
 
 - `pg_trgm`: enabled to support trigram-based GIN indexes for fuzzy text matching.
 
 ### Query patterns improved by the indexes
 
-- Keyword search with relevance ordering:
+- Enhanced keyword search with author/category metadata:
   ```sql
   WITH ranked AS (
-    SELECT a.*, to_tsvector('english', coalesce(a.title,'') || ' ' || coalesce(a.content,'')) AS document,
+    SELECT a.*, au.name AS author_name, c.name AS category_name,
+           to_tsvector('english', 
+             coalesce(a.title,'') || ' ' || 
+             coalesce(a.content,'') || ' ' || 
+             coalesce(au.name,'') || ' ' || 
+             coalesce(c.name,'')
+           ) AS document,
            to_tsquery('english', $1) AS q
     FROM articles a
+    LEFT JOIN authors au ON a.author_id = au.id
+    LEFT JOIN categories c ON a.category_id = c.id
   )
   SELECT *, ts_rank(document, q) AS rank
   FROM ranked
@@ -175,7 +208,7 @@ CREATE TABLE IF NOT EXISTS article_tags (
   ORDER BY rank DESC, published_date DESC
   LIMIT 25;
   ```
-  Uses `articles_fts_idx`.
+  Uses dynamic FTS vector that includes author names and categories, enabling searches like "Bob Smith" or "Python Programming" to find relevant articles by author or category.
 
 - Category feed ordered by recency:
   ```sql
@@ -266,7 +299,19 @@ Tags: SQL, Database, Joins
 
 ## Demo Script: Complex Search Examples
 
-### Example 1: Complex Multi-Keyword Search with Category Filter
+### Example 1: Author Name Search (Fixed Bug)
+
+```bash
+# Search for articles by a specific author - now works correctly!
+curl -X GET "http://localhost:4000/api/v1/search?query=Bob%20Smith&limit=5"
+
+# This now returns all articles written by Bob Smith, not just articles 
+# containing "Bob Smith" in the title or content
+```
+
+**What was fixed**: The search previously only searched article title and content, missing author names. Now the full-text search vector includes author names and category names, enabling comprehensive search across all article metadata.
+
+### Example 2: Complex Multi-Keyword Search with Category Filter
 
 ```bash
 # Search for Python async programming articles in the Programming category

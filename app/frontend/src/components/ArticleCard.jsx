@@ -19,7 +19,7 @@ export default function ArticleCard({ article, onAsk, onClose }) {
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-gray-400 hover:text-white"
+        className="absolute top-4 right-4 text-gray-400 hover:text-white cursor-pointer"
         aria-label="Close"
       >
         <XMarkIcon className="w-6 h-6" />
@@ -67,7 +67,7 @@ export default function ArticleCard({ article, onAsk, onClose }) {
       <div className="flex justify-end mt-4">
         <button
           onClick={() => onAsk?.(article)}
-          className="px-4 py-1.5 bg-[#1e2533] text-gray-200 rounded-full shadow-md hover:bg-[#2a3245] transition"
+          className="px-4 py-1.5 bg-[#1e2533] text-gray-200 rounded-full shadow-md hover:bg-[#2a3245] transition cursor-pointer"
         >
           Ask AI
         </button>

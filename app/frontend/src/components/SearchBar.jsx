@@ -127,7 +127,7 @@ export default function SearchBar({ onSelectArticle, onTyping }) {
           />
 
           <button
-            className="ml-3 text-gray-300 hover:text-white transition"
+            className="ml-3 text-gray-300 hover:text-white cursor-pointer transition"
             onClick={() => {
               if (!open && query.trim()) {
                 setQuery((q) => q);
@@ -143,7 +143,7 @@ export default function SearchBar({ onSelectArticle, onTyping }) {
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
           className="bg-[#2a3245] text-gray-300 px-3 py-3 rounded-lg outline-none shadow-md
-               appearance-none pr-8 font-medium text-sm"
+               appearance-none pr-8 font-medium text-sm hover: cursor-pointer"
           style={{
             backgroundImage:
               "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'><path d='M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z'/></svg>\")",
@@ -188,6 +188,8 @@ export default function SearchBar({ onSelectArticle, onTyping }) {
             ))}
         </ul>
       )}
+
+      
     </div>
   );
 }
